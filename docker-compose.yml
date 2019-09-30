@@ -1,0 +1,52 @@
+version: '3'
+
+services:
+  wp:
+    image: wordpress:latest
+    restart: unless-stopped
+    container_name: ${CONTAINER_WP_NAME}
+    ports:
+      - ${IP}:80:80
+    volumes:
+#      - ./wp-dev:/var/www/html # Full wordpress project
+      - ./wp-dev/my-theme:/var/www/html/wp-content/themes/my_theme # Full wordpress project
+      - ./wp-dev/last-word:/var/www/html/wp-content/plugins/last-word # Full wordpress project
+    environment:
+      WORDPRESS_DB_HOST: ${CONTAINER_DB_NAME}:3306
+      WORDPRESS_DB_NAME: ${DB_NAME}
+      WORDPRESS_DB_USER: ${DB_USER}
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
+#      WORDPRESS_AUTH_KEY: ${AUTH_KEY}
+#      WORDPRESS_SECURE_AUTH_KEY: ${SECURE_AUTH_KEY}
+#      WORDPRESS_LOGGED_IN_KEY: ${LOGGED_IN_KEY}
+#      WORDPRESS_NONCE_KEY: ${NONCE_KEY}
+#      WORDPRESS_AUTH_SALT: ${AUTH_SALT}
+#      WORDPRESS_SECURE_AUTH_SALT: ${SECURE_AUTH_SALT}
+#      WORDPRESS_LOGGED_IN_SALT: ${LOGGED_IN_SALT}
+#      WORDPRESS_NONCE_SALT: ${NONCE_SALT}
+      WORDPRESS_DEBUG: ${WP_DEBUG}
+      WORDPRESS_TABLE_PREFIX: ${WORDPRESS_TABLE_PREFIX}
+      WORDPRESS_CONFIG_EXTRA: |
+        define('WP_DEBUG_LOG', ${WP_DEBUG_LOG});
+        define('WP_DEBUG_DISPLAY', ${WP_DEBUG_DISPLAY});
+      # define('XDEBUG_CONFIG', ${XDEBUG_CONFIG});
+      #XDEBUG_CONFIG = remote_host=localhost.localdomain
+    depends_on:
+      - db
+
+  db:
+    container_name: ${CONTAINER_DB_NAME}
+    image: mariadb:latest # mysql or mariadb
+    restart: unless-stopped
+    ports:
+      - ${IP}:3306:3306 # change ip if required
+    volumes:
+      - ./wp-db:/docker-entrypoint-initdb.d
+      - db_data:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: "${DB_NAME}"
+      MYSQL_ROOT_PASSWORD: "${DB_PASSWORD}"
+
+volumes:
+  db_data:
+
